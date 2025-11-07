@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: white;
+    color: black;
+    margin: 0;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .btn-brutal {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    font-weight: 700;
+    border-width: 2px;
+    border-color: black;
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+    cursor: pointer;
+  }
+
+  .btn-brutal:hover {
+    transform: translate(4px, 4px);
+    box-shadow: none;
+  }
+
+  .btn-brutal:active {
+    transform: translate(8px, 8px);
+    box-shadow: none;
+  }
+
+  .card-brutal {
+    border-width: 4px;
+    border-color: black;
+    box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
+    background-color: white;
+  }
+
+  .input-brutal {
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-width: 4px;
+    border-color: black;
+    font-weight: 500;
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+    box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+  }
+
+  .input-brutal:focus {
+    outline: none;
+    transform: translate(4px, 4px);
+    box-shadow: none;
+  }
+
+  .table-brutal {
+    width: 100%;
+    border-width: 4px;
+    border-color: black;
+  }
+
+  .table-brutal th {
+    border-width: 2px;
+    border-color: black;
+    background-color: #FFC700;
+    padding: 0.75rem;
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .table-brutal td {
+    border-width: 2px;
+    border-color: black;
+    padding: 0.75rem;
+  }
+}

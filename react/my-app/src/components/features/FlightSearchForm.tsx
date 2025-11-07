@@ -1,0 +1,151 @@
+import React, { useState } from 'react';
+import type { FlightSearchParams } from '../../types';
+import Input from '../ui/Input';
+import Button from '../ui/Button';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
+
+interface FlightSearchFormProps {
+  onSearch: (params: FlightSearchParams) => void;
+  loading?: boolean;
+}
+
+const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch, loading }) => {
+  const [tripType, setTripType] = useState<'roundtrip' | 'oneway'>('roundtrip');
+  const [formData, setFormData] = useState({
+    departureCity: '',
+    arrivalCity: '',
+    startTime: '',
+    endTime: '',
+    numTravelers: 1,
+  });
+
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Convert date to datetime format (set time to start/end of day)
+    const startDateTime = formData.startTime ? `${formData.startTime}T00:00:00` : '';
+    const endDateTime = formData.endTime ? `${formData.endTime}T23:59:59` : '';
+    
+    onSearch({
+      ...formData,
+      startTime: startDateTime,
+      endTime: endDateTime
+    });
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    // Capitalize first letter of city names
+    if (name === 'departureCity' || name === 'arrivalCity') {
+      const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
+      setFormData(prev => ({
+        ...prev,
+        [name]: capitalizedValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: name === 'numTravelers' ? parseInt(value) : value
+      }));
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="card-brutal p-6" style={{ backgroundColor: '#FFC700' }}>
+      <h2 className="text-3xl font-bold mb-6 uppercase">Search Flights</h2>
+      
+      {/* Trip Type Selection */}
+      <div className="mb-6 flex gap-4">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name="tripType"
+            value="roundtrip"
+            checked={tripType === 'roundtrip'}
+            onChange={(e) => setTripType(e.target.value as 'roundtrip' | 'oneway')}
+            className="w-5 h-5"
+          />
+          <span className="font-bold text-lg">Round Trip</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name="tripType"
+            value="oneway"
+            checked={tripType === 'oneway'}
+            onChange={(e) => setTripType(e.target.value as 'roundtrip' | 'oneway')}
+            className="w-5 h-5"
+          />
+          <span className="font-bold text-lg">One Way</span>
+        </label>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Input
+          label="From"
+          name="departureCity"
+          value={formData.departureCity}
+          onChange={handleChange}
+          placeholder="Departure City"
+          required
+        />
+        
+        <Input
+          label="To"
+          name="arrivalCity"
+          value={formData.arrivalCity}
+          onChange={handleChange}
+          placeholder="Arrival City"
+          required
+        />
+        
+        <Input
+          label="Departure Date"
+          name="startTime"
+          type="date"
+          value={formData.startTime}
+          onChange={handleChange}
+          min={today}
+          required
+        />
+        
+        <Input
+          label={tripType === 'roundtrip' ? "Return Date" : "Return Date (Optional)"}
+          name="endTime"
+          type="date"
+          value={formData.endTime}
+          onChange={handleChange}
+          min={formData.startTime || today}
+          required={tripType === 'roundtrip'}
+        />
+        
+        <Input
+          label="Travelers"
+          name="numTravelers"
+          type="number"
+          min="1"
+          max="9"
+          value={formData.numTravelers}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      
+      <Button
+        type="submit"
+        variant="primary"
+        className="w-full mt-6 flex items-center justify-center gap-2"
+        disabled={loading}
+      >
+        <MagnifyingGlassIcon className="w-5 h-5" />
+        {loading ? 'Searching...' : 'Search Flights'}
+      </Button>
+    </form>
+  );
+};
+
+export default FlightSearchForm;
