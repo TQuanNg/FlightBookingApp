@@ -33,6 +33,29 @@ public class AutoGenerateTicket {
         return flights;
     }
 
+    public List<Flight> generateReturnFlights(String departureCity, String arrivalCity, int count, LocalDateTime earliestReturnTime) {
+        List<Flight> returnFlights = new ArrayList<>();
+
+        for(int i = 0; i < count; i++) {
+            Flight flight = new Flight();
+            flight.setFlightNumber(this.generateFlightNumber());
+            flight.setDepartureCity(arrivalCity); // Swap cities for return
+            flight.setArrivalCity(departureCity);
+
+            // Return flights should be after the outbound flight arrival
+            LocalDateTime departureTime = earliestReturnTime.plusHours((long)(2 + this.random.nextInt(72))); // 2-74 hours after earliest return
+            LocalDateTime arrivalTime = departureTime.plusHours((long)(1 + this.random.nextInt(10)));
+
+            flight.setDepartureTime(departureTime);
+            flight.setArrivalTime(arrivalTime);
+            flight.setPrice(this.generateRandomPrice());
+            flight.setAvailableSeats(50 + this.random.nextInt(151));
+            returnFlights.add(flight);
+        }
+
+        return returnFlights;
+    }
+
     private String generateFlightNumber() {
         return "FL" + (1000 + this.random.nextInt(9000));
     }
@@ -46,4 +69,3 @@ public class AutoGenerateTicket {
         return BigDecimal.valueOf(price).setScale(2, RoundingMode.HALF_UP);
     }
 }
-

@@ -10,6 +10,7 @@ import com.example.flightapi.model.Entity.UserRole;
 import com.example.flightapi.repository.BookingRepository;
 import com.example.flightapi.repository.FlightRepository;
 import com.example.flightapi.repository.UserRepository;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -131,11 +132,12 @@ public class AdminService {
 
     }
 
-    @Transactional
     public ApiResponse createFlight(Flight flight) {
         try {
-            this.flightRepository.save(flight);
-            return new ApiResponse(true, "Flight created successfully", flight);
+            flight.setFlightId(null);
+
+            Flight savedFlight = this.flightRepository.save(flight);
+            return new ApiResponse(true, "Flight created successfully", savedFlight);
         } catch (Exception e) {
             return new ApiResponse(false, "Failed to create flight: " + e.getMessage());
         }

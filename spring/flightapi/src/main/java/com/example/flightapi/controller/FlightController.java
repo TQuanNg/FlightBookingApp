@@ -1,5 +1,6 @@
 package com.example.flightapi.controller;
 
+import com.example.flightapi.model.DTO.FlightSearchResponseDTO;
 import com.example.flightapi.model.Entity.Flight;
 import com.example.flightapi.service.FlightService;
 import java.time.LocalDateTime;
@@ -18,7 +19,14 @@ public class FlightController {
     private FlightService flightService;
 
     @GetMapping({"/search"})
-    public ResponseEntity<List<Flight>> searchFlights(@RequestParam String departureCity, @RequestParam String arrivalCity, @RequestParam LocalDateTime startTime, @RequestParam LocalDateTime endTime, @RequestParam int numTravelers) {
+    public ResponseEntity<FlightSearchResponseDTO> searchFlights(@RequestParam String departureCity, @RequestParam String arrivalCity, @RequestParam LocalDateTime startTime, @RequestParam LocalDateTime endTime, @RequestParam int numTravelers, @RequestParam(defaultValue = "ONE_WAY") String tripType) {
+        FlightSearchResponseDTO response = this.flightService.searchFlights(departureCity, arrivalCity, startTime, endTime, numTravelers, tripType);
+        return response.getOutboundFlights().isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(response);
+    }
+
+    // Legacy endpoint for backward compatibility
+    @GetMapping({"/search/simple"})
+    public ResponseEntity<List<Flight>> searchFlightsSimple(@RequestParam String departureCity, @RequestParam String arrivalCity, @RequestParam LocalDateTime startTime, @RequestParam LocalDateTime endTime, @RequestParam int numTravelers) {
         List<Flight> flights = this.flightService.searchFlights(departureCity, arrivalCity, startTime, endTime, numTravelers);
         return flights.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(flights);
     }
