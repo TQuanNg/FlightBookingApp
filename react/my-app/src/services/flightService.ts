@@ -1,9 +1,15 @@
 import apiClient from './apiClient';
-import { Flight, FlightSearchParams, ApiResponse } from '../types';
+import { Flight, FlightSearchParams, FlightSearchResponseDTO, ApiResponse } from '../types';
 
 export const flightService = {
-  async searchFlights(params: FlightSearchParams): Promise<Flight[]> {
-    const response = await apiClient.get('/flights/search', { params });
+  async searchFlights(params: FlightSearchParams): Promise<FlightSearchResponseDTO> {
+    const response = await apiClient.get<FlightSearchResponseDTO>('/flights/search', { params });
+    return response.data;
+  },
+
+  // Legacy endpoint for simple flight search (returns flat list)
+  async searchFlightsSimple(params: FlightSearchParams): Promise<Flight[]> {
+    const response = await apiClient.get<Flight[]>('/flights/search/simple', { params });
     return response.data;
   },
 

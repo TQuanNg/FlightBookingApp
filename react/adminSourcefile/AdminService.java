@@ -158,6 +158,7 @@ public class AdminService {
     @Transactional
     public ApiResponse createFlight(Flight flight) {
         try {
+            flight.setFlightId(null);
             flightRepository.save(flight);
             return new ApiResponse(true, "Flight created successfully", flight);
         } catch (Exception e) {

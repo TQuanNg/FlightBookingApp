@@ -43,11 +43,10 @@ export interface Flight {
   arrivalCity: string;
   departureTime: string;
   arrivalTime: string;
-  duration: number;
+  duration?: number; // Optional, calculated field
   availableSeats: number;
-  price: number;
-  basePrice?: number; // Admin uses basePrice for flight creation/editing
-  status: string;
+  price: number; // Main price field used by backend
+  status?: string; // Optional, may not be returned by backend
 }
 
 // Booking Types
@@ -197,10 +196,22 @@ export interface RegisterRequest {
 }
 
 // Flight Search Types
+export enum TripType {
+  ONE_WAY = 'ONE_WAY',
+  ROUND_TRIP = 'ROUND_TRIP'
+}
+
 export interface FlightSearchParams {
   departureCity: string;
   arrivalCity: string;
   startTime: string;
   endTime: string;
   numTravelers: number;
+  tripType?: TripType | string;
+}
+
+export interface FlightSearchResponseDTO {
+  tripType: string;
+  outboundFlights: Flight[];
+  returnFlights: Flight[] | null;
 }

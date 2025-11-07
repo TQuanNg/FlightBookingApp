@@ -20,8 +20,7 @@ const AdminFlightsPage: React.FC = () => {
     departureTime: '',
     arrivalTime: '',
     availableSeats: 0,
-    basePrice: 0,
-    status: FlightStatus.ON_TIME
+    price: 0
   };
 
   const [formData, setFormData] = useState<Partial<Flight>>(emptyFlight);
@@ -48,20 +47,13 @@ const AdminFlightsPage: React.FC = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'availableSeats' || name === 'basePrice' ? Number(value) : value
-    }));
-  };
-
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      status: e.target.value as FlightStatus
+      [name]: name === 'availableSeats' || name === 'price' ? Number(value) : value
     }));
   };
 
   const handleSubmit = async () => {
     if (!formData.flightNumber || !formData.departureCity || !formData.arrivalCity || 
-        !formData.departureTime || !formData.arrivalTime || !formData.availableSeats || !formData.basePrice) {
+        !formData.departureTime || !formData.arrivalTime || !formData.availableSeats || !formData.price) {
       alert('Please fill in all required fields');
       return;
     }
@@ -123,8 +115,7 @@ const AdminFlightsPage: React.FC = () => {
       departureTime: flight.departureTime,
       arrivalTime: flight.arrivalTime,
       availableSeats: flight.availableSeats,
-      basePrice: flight.basePrice,
-      status: flight.status
+      price: flight.price
     });
     setShowModal(true);
   };
@@ -168,9 +159,11 @@ const AdminFlightsPage: React.FC = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h3 className="text-2xl font-bold">{flight.flightNumber}</h3>
-                  <span className={`px-3 py-1 font-bold text-sm border-2 border-black ${getStatusColor(flight.status)}`}>
-                    {flight.status}
-                  </span>
+                  {flight.status && (
+                    <span className={`px-3 py-1 font-bold text-sm border-2 border-black ${getStatusColor(flight.status)}`}>
+                      {flight.status}
+                    </span>
+                  )}
                 </div>
 
                 <div className="mb-4">
@@ -185,7 +178,7 @@ const AdminFlightsPage: React.FC = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
                   <p><span className="font-bold">Available Seats:</span> {flight.availableSeats}</p>
-                  <p><span className="font-bold">Base Price:</span> ${flight.basePrice}</p>
+                  <p><span className="font-bold">Price:</span> ${flight.price}</p>
                   <p><span className="font-bold">ID:</span> {flight.flightId || flight.id}</p>
                 </div>
               </div>
@@ -277,28 +270,16 @@ const AdminFlightsPage: React.FC = () => {
               required
             />
             <Input
-              label="Base Price ($)"
-              name="basePrice"
+              label="Price ($)"
+              name="price"
               type="number"
-              value={formData.basePrice || ''}
+              value={formData.price || ''}
               onChange={handleInputChange}
               min={0}
               step={0.01}
               required
             />
           </div>
-
-          <Select
-            label="Status"
-            value={formData.status || FlightStatus.ON_TIME}
-            onChange={handleSelectChange}
-            options={[
-              { value: FlightStatus.ON_TIME, label: 'On Time' },
-              { value: FlightStatus.DELAYED, label: 'Delayed' },
-              { value: FlightStatus.BOARDING, label: 'Boarding' },
-              { value: FlightStatus.CANCELLED, label: 'Cancelled' }
-            ]}
-          />
 
           <div className="flex gap-4 pt-4">
             <Button

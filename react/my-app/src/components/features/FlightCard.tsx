@@ -9,12 +9,14 @@ interface FlightCardProps {
   flight: Flight;
   onSelect: (flight: Flight) => void;
   buttonText?: string;
+  disabled?: boolean;
 }
 
 const FlightCard: React.FC<FlightCardProps> = ({ 
   flight, 
   onSelect,
-  buttonText = 'Select Flight' 
+  buttonText = 'Select Flight',
+  disabled = false
 }) => {
   return (
     <Card className="hover:bg-gray-50">
@@ -22,9 +24,11 @@ const FlightCard: React.FC<FlightCardProps> = ({
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-2xl font-bold">{flight.flightNumber}</span>
-            <span className="px-3 py-1 bg-black text-white font-bold text-sm border-2 border-black">
-              {flight.status}
-            </span>
+            {flight.status && (
+              <span className="px-3 py-1 bg-black text-white font-bold text-sm border-2 border-black">
+                {flight.status}
+              </span>
+            )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -48,10 +52,12 @@ const FlightCard: React.FC<FlightCardProps> = ({
           </div>
           
           <div className="flex items-center gap-6 mt-4">
-            <div className="flex items-center gap-2">
-              <ClockIcon className="w-5 h-5" />
-              <span className="font-bold">{flight.duration} min</span>
-            </div>
+            {flight.duration && (
+              <div className="flex items-center gap-2">
+                <ClockIcon className="w-5 h-5" />
+                <span className="font-bold">{flight.duration} min</span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <UsersIcon className="w-5 h-5" />
               <span className="font-bold">{flight.availableSeats} seats</span>
@@ -71,7 +77,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
           <Button
             variant="accent"
             onClick={() => onSelect(flight)}
-            disabled={flight.availableSeats === 0}
+            disabled={disabled || flight.availableSeats === 0}
           >
             {flight.availableSeats === 0 ? 'Sold Out' : buttonText}
           </Button>

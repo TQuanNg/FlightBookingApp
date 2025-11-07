@@ -8,31 +8,42 @@ import type { Flight, FlightSearchParams } from '../types';
 
 const HomePage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { flights, loading, error, searchParams } = useAppSelector(state => state.flights);
+  const { outboundFlights, returnFlights, tripType, loading, error, searchParams } = useAppSelector(state => state.flights);
   const { user, isAuthenticated } = useAppSelector(state => state.auth);
   const [selectedFlight, setSelected] = useState<Flight | null>(null);
-  const [returnFlight, setReturnFlight] = useState<Flight | null>(null);
+  const [selectedReturnFlight, setSelectedReturnFlight] = useState<Flight | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [travelers, setTravelers] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [selectingReturn, setSelectingReturn] = useState(false);
 
   const handleSearch = (params: FlightSearchParams) => {
     // Store the number of travelers from the search
     setTravelers(params.numTravelers);
+    // Reset selections when doing a new search
+    setSelected(null);
+    setSelectedReturnFlight(null);
+    setSelectingReturn(false);
     dispatch(searchFlights(params));
   };
 
   const handleSelectFlight = (flight: Flight) => {
     console.log('HomePage: Selected flight:', flight);
-    if (!selectedFlight) {
+    
+    if (!selectingReturn) {
+      // Selecting outbound flight
       setSelected(flight);
-      // Ask if they want a return flight
-      const wantReturn = window.confirm('Do you want to add a return flight?');
-      if (!wantReturn) {
+      
+      // If it's a round trip search, move to return flight selection
+      if (tripType === 'ROUND_TRIP' && returnFlights.length > 0) {
+        setSelectingReturn(true);
+      } else {
+        // For one-way trips, show modal immediately
         setShowModal(true);
       }
     } else {
-      setReturnFlight(flight);
+      // Selecting return flight
+      setSelectedReturnFlight(flight);
       setShowModal(true);
     }
   };
@@ -56,7 +67,7 @@ const HomePage: React.FC = () => {
       userId: user.id,
       flightId: selectedFlight.flightId || selectedFlight.id,
       numberOfTravelers: travelers,
-      returnFlightId: returnFlight?.flightId || returnFlight?.id,
+      returnFlightId: selectedReturnFlight?.flightId || selectedReturnFlight?.id,
     });
     
     setAddingToCart(true);
@@ -65,13 +76,14 @@ const HomePage: React.FC = () => {
         userId: user.id,
         flightId: selectedFlight.flightId || selectedFlight.id!,
         numberOfTravelers: travelers,
-        returnFlightId: returnFlight?.flightId || returnFlight?.id,
+        returnFlightId: selectedReturnFlight?.flightId || selectedReturnFlight?.id,
       })).unwrap();
       
       alert('Flight(s) added to cart successfully!');
       setShowModal(false);
       setSelected(null);
-      setReturnFlight(null);
+      setSelectedReturnFlight(null);
+      setSelectingReturn(false);
     } catch (err) {
       console.error('Failed to add to cart:', err);
       alert('Failed to add to cart: ' + (err instanceof Error ? err.message : 'Unknown error'));
@@ -95,28 +107,58 @@ const HomePage: React.FC = () => {
 
       {loading && <Loading message="Searching for flights..." />}
 
-      {!loading && flights.length === 0 && searchParams && (
+      {!loading && outboundFlights.length === 0 && searchParams && (
         <div className="card-brutal p-12 text-center bg-gray-100">
           <p className="text-2xl font-bold">No flights found</p>
           <p className="text-lg mt-2">Try adjusting your search criteria</p>
         </div>
       )}
 
-      {!loading && flights.length > 0 && (
+      {!loading && outboundFlights.length > 0 && (
         <div>
-          <h2 className="text-3xl font-bold mb-6 uppercase">
-            Available Flights ({flights.length})
-          </h2>
-          <div className="space-y-4">
-            {flights.map(flight => (
-              <FlightCard
-                key={flight.flightId || flight.id}
-                flight={flight}
-                onSelect={handleSelectFlight}
-                buttonText={selectedFlight && !returnFlight ? 'Select as Return' : 'Add to Cart'}
-              />
-            ))}
+          {/* Outbound Flights Section */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold mb-6 uppercase">
+              {selectingReturn ? 'Select Your Outbound Flight (Already Selected)' : 'Select Your Outbound Flight'} ({outboundFlights.length})
+            </h2>
+            <div className="space-y-4">
+              {outboundFlights.map(flight => (
+                <FlightCard
+                  key={flight.flightId || flight.id}
+                  flight={flight}
+                  onSelect={handleSelectFlight}
+                  buttonText={selectingReturn ? 'Selected ✓' : 'Select Flight'}
+                  disabled={selectingReturn || !!selectedFlight}
+                />
+              ))}
+            </div>
           </div>
+
+          {/* Return Flights Section (only for round trips) */}
+          {tripType === 'ROUND_TRIP' && returnFlights.length > 0 && selectedFlight && (
+            <div>
+              <h2 className="text-3xl font-bold mb-6 uppercase">
+                Select Your Return Flight ({returnFlights.length})
+              </h2>
+              <div className="space-y-4">
+                {returnFlights.map(flight => (
+                  <FlightCard
+                    key={flight.flightId || flight.id}
+                    flight={flight}
+                    onSelect={handleSelectFlight}
+                    buttonText="Select Return Flight"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Helper message for round trips */}
+          {tripType === 'ROUND_TRIP' && returnFlights.length > 0 && !selectingReturn && (
+            <div className="card-brutal p-6 mt-4 bg-blue-100">
+              <p className="text-lg font-bold">💡 Select an outbound flight first, then choose your return flight</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -125,7 +167,8 @@ const HomePage: React.FC = () => {
         onClose={() => {
           setShowModal(false);
           setSelected(null);
-          setReturnFlight(null);
+          setSelectedReturnFlight(null);
+          setSelectingReturn(false);
         }}
         title="Confirm Booking Details"
         maxWidth="lg"
@@ -142,13 +185,13 @@ const HomePage: React.FC = () => {
             </div>
           )}
 
-          {returnFlight && (
+          {selectedReturnFlight && (
             <div>
               <h3 className="text-xl font-bold mb-2">Return Flight</h3>
               <div className="border-4 border-black p-4">
-                <p className="font-bold">{returnFlight.flightNumber}</p>
-                <p>{returnFlight.departureCity} → {returnFlight.arrivalCity}</p>
-                <p className="text-lg font-bold mt-2">${returnFlight.price} per person</p>
+                <p className="font-bold">{selectedReturnFlight.flightNumber}</p>
+                <p>{selectedReturnFlight.departureCity} → {selectedReturnFlight.arrivalCity}</p>
+                <p className="text-lg font-bold mt-2">${selectedReturnFlight.price} per person</p>
               </div>
             </div>
           )}
@@ -169,7 +212,7 @@ const HomePage: React.FC = () => {
 
           <div className="border-t-4 border-black pt-4">
             <p className="text-2xl font-bold">
-              Total: ${((selectedFlight?.price || 0) + (returnFlight?.price || 0)) * travelers}
+              Total: ${((selectedFlight?.price || 0) + (selectedReturnFlight?.price || 0)) * travelers}
             </p>
           </div>
 
@@ -179,7 +222,8 @@ const HomePage: React.FC = () => {
               onClick={() => {
                 setShowModal(false);
                 setSelected(null);
-                setReturnFlight(null);
+                setSelectedReturnFlight(null);
+                setSelectingReturn(false);
               }}
               className="flex-1"
             >

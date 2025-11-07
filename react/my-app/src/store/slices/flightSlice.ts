@@ -1,9 +1,12 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import type { Flight, FlightSearchParams } from '../../types';
+import type { Flight, FlightSearchParams, FlightSearchResponseDTO } from '../../types';
 import { flightService } from '../../services/flightService';
 
 interface FlightState {
   flights: Flight[];
+  outboundFlights: Flight[];
+  returnFlights: Flight[];
+  tripType: string | null;
   selectedFlight: Flight | null;
   loading: boolean;
   error: string | null;
@@ -11,7 +14,10 @@ interface FlightState {
 }
 
 const initialState: FlightState = {
-  flights: [],
+  flights: [], // For backward compatibility
+  outboundFlights: [],
+  returnFlights: [],
+  tripType: null,
   selectedFlight: null,
   loading: false,
   error: null,
@@ -22,8 +28,8 @@ export const searchFlights = createAsyncThunk(
   'flights/search',
   async (params: FlightSearchParams, { rejectWithValue }) => {
     try {
-      const flights = await flightService.searchFlights(params);
-      return { flights, params };
+      const response = await flightService.searchFlights(params);
+      return { response, params };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to search flights');
     }
@@ -51,6 +57,9 @@ const flightSlice = createSlice({
     },
     clearFlights: (state) => {
       state.flights = [];
+      state.outboundFlights = [];
+      state.returnFlights = [];
+      state.tripType = null;
       state.searchParams = null;
     },
     clearError: (state) => {
@@ -66,8 +75,13 @@ const flightSlice = createSlice({
       })
       .addCase(searchFlights.fulfilled, (state, action) => {
         state.loading = false;
-        state.flights = action.payload.flights;
-        state.searchParams = action.payload.params;
+        const { response, params } = action.payload;
+        state.tripType = response.tripType;
+        state.outboundFlights = response.outboundFlights;
+        state.returnFlights = response.returnFlights || [];
+        // For backward compatibility, combine all flights
+        state.flights = [...response.outboundFlights, ...(response.returnFlights || [])];
+        state.searchParams = params;
       })
       .addCase(searchFlights.rejected, (state, action) => {
         state.loading = false;

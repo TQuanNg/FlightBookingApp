@@ -72,12 +72,32 @@ export const adminService = {
   },
 
   async createFlight(flight: Omit<Flight, 'id' | 'flightId'>): Promise<ApiResponse> {
-    const response = await apiClient.post('/api/admin/flights', flight);
+    // Prepare flight data for backend - ensure proper formatting
+    const flightData = {
+      flightNumber: flight.flightNumber,
+      departureCity: flight.departureCity,
+      arrivalCity: flight.arrivalCity,
+      departureTime: flight.departureTime,
+      arrivalTime: flight.arrivalTime,
+      price: Number(flight.price), // Ensure it's a number
+      availableSeats: Number(flight.availableSeats)
+    };
+    const response = await apiClient.post('/api/admin/flights', flightData);
     return response.data;
   },
 
   async updateFlight(flightId: number, flight: Partial<Flight>): Promise<ApiResponse> {
-    const response = await apiClient.put(`/api/admin/flights/${flightId}`, flight);
+    // Prepare flight data for backend - ensure proper formatting
+    const flightData = {
+      flightNumber: flight.flightNumber,
+      departureCity: flight.departureCity,
+      arrivalCity: flight.arrivalCity,
+      departureTime: flight.departureTime,
+      arrivalTime: flight.arrivalTime,
+      price: flight.price ? Number(flight.price) : undefined,
+      availableSeats: flight.availableSeats ? Number(flight.availableSeats) : undefined
+    };
+    const response = await apiClient.put(`/api/admin/flights/${flightId}`, flightData);
     return response.data;
   },
 

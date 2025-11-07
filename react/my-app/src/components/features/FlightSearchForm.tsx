@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { FlightSearchParams } from '../../types';
+import { TripType } from '../../types';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
@@ -10,7 +11,7 @@ interface FlightSearchFormProps {
 }
 
 const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch, loading }) => {
-  const [tripType, setTripType] = useState<'roundtrip' | 'oneway'>('roundtrip');
+  const [tripType, setTripType] = useState<'ROUND_TRIP' | 'ONE_WAY'>('ROUND_TRIP');
   const [formData, setFormData] = useState({
     departureCity: '',
     arrivalCity: '',
@@ -32,7 +33,8 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch, loading }
     onSearch({
       ...formData,
       startTime: startDateTime,
-      endTime: endDateTime
+      endTime: endDateTime,
+      tripType: tripType
     });
   };
 
@@ -64,9 +66,9 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch, loading }
           <input
             type="radio"
             name="tripType"
-            value="roundtrip"
-            checked={tripType === 'roundtrip'}
-            onChange={(e) => setTripType(e.target.value as 'roundtrip' | 'oneway')}
+            value="ROUND_TRIP"
+            checked={tripType === 'ROUND_TRIP'}
+            onChange={(e) => setTripType(e.target.value as 'ROUND_TRIP' | 'ONE_WAY')}
             className="w-5 h-5"
           />
           <span className="font-bold text-lg">Round Trip</span>
@@ -75,9 +77,9 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch, loading }
           <input
             type="radio"
             name="tripType"
-            value="oneway"
-            checked={tripType === 'oneway'}
-            onChange={(e) => setTripType(e.target.value as 'roundtrip' | 'oneway')}
+            value="ONE_WAY"
+            checked={tripType === 'ONE_WAY'}
+            onChange={(e) => setTripType(e.target.value as 'ROUND_TRIP' | 'ONE_WAY')}
             className="w-5 h-5"
           />
           <span className="font-bold text-lg">One Way</span>
@@ -114,13 +116,13 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch, loading }
         />
         
         <Input
-          label={tripType === 'roundtrip' ? "Return Date" : "Return Date (Optional)"}
+          label={tripType === 'ROUND_TRIP' ? "Return Date" : "Return Date (Optional)"}
           name="endTime"
           type="date"
           value={formData.endTime}
           onChange={handleChange}
           min={formData.startTime || today}
-          required={tripType === 'roundtrip'}
+          required={tripType === 'ROUND_TRIP'}
         />
         
         <Input
