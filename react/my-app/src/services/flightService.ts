@@ -3,7 +3,13 @@ import { Flight, FlightSearchParams, FlightSearchResponseDTO, ApiResponse } from
 
 export const flightService = {
   async searchFlights(params: FlightSearchParams): Promise<FlightSearchResponseDTO> {
-    const response = await apiClient.get<FlightSearchResponseDTO>('/flights/search', { params });
+    // Clean up params - remove endTime if it's empty (for ONE_WAY trips)
+    const cleanParams = {
+      ...params,
+      endTime: params.endTime || undefined // Send undefined instead of empty string
+    };
+    
+    const response = await apiClient.get<FlightSearchResponseDTO>('/flights/search', { params: cleanParams });
     return response.data;
   },
 

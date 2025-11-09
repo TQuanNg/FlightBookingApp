@@ -28,14 +28,23 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch, loading }
     
     // Convert date to datetime format (set time to start/end of day)
     const startDateTime = formData.startTime ? `${formData.startTime}T00:00:00` : '';
-    const endDateTime = formData.endTime ? `${formData.endTime}T23:59:59` : '';
     
-    onSearch({
-      ...formData,
+    // For ONE_WAY, don't send endTime at all (backend will handle it)
+    // For ROUND_TRIP, send the endTime
+    const searchParams: FlightSearchParams = {
+      departureCity: formData.departureCity,
+      arrivalCity: formData.arrivalCity,
       startTime: startDateTime,
-      endTime: endDateTime,
+      numTravelers: formData.numTravelers,
       tripType: tripType
-    });
+    };
+
+    // Only add endTime if it exists and trip is ROUND_TRIP
+    if (tripType === 'ROUND_TRIP' && formData.endTime) {
+      searchParams.endTime = `${formData.endTime}T23:59:59`;
+    }
+    
+    onSearch(searchParams);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,6 +65,17 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch, loading }
     }
   };
 
+  const handleTripTypeChange = (newTripType: 'ROUND_TRIP' | 'ONE_WAY') => {
+    setTripType(newTripType);
+    // Clear return date when switching to one-way
+    if (newTripType === 'ONE_WAY') {
+      setFormData(prev => ({
+        ...prev,
+        endTime: ''
+      }));
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="card-brutal p-6" style={{ backgroundColor: '#FFC700' }}>
       <h2 className="text-3xl font-bold mb-6 uppercase">Search Flights</h2>
@@ -68,7 +88,7 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch, loading }
             name="tripType"
             value="ROUND_TRIP"
             checked={tripType === 'ROUND_TRIP'}
-            onChange={(e) => setTripType(e.target.value as 'ROUND_TRIP' | 'ONE_WAY')}
+            onChange={(e) => handleTripTypeChange(e.target.value as 'ROUND_TRIP' | 'ONE_WAY')}
             className="w-5 h-5"
           />
           <span className="font-bold text-lg">Round Trip</span>
@@ -79,7 +99,7 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch, loading }
             name="tripType"
             value="ONE_WAY"
             checked={tripType === 'ONE_WAY'}
-            onChange={(e) => setTripType(e.target.value as 'ROUND_TRIP' | 'ONE_WAY')}
+            onChange={(e) => handleTripTypeChange(e.target.value as 'ROUND_TRIP' | 'ONE_WAY')}
             className="w-5 h-5"
           />
           <span className="font-bold text-lg">One Way</span>
@@ -115,15 +135,17 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({ onSearch, loading }
           required
         />
         
-        <Input
-          label={tripType === 'ROUND_TRIP' ? "Return Date" : "Return Date (Optional)"}
-          name="endTime"
-          type="date"
-          value={formData.endTime}
-          onChange={handleChange}
-          min={formData.startTime || today}
-          required={tripType === 'ROUND_TRIP'}
-        />
+        {tripType === 'ROUND_TRIP' && (
+          <Input
+            label="Return Date"
+            name="endTime"
+            type="date"
+            value={formData.endTime}
+            onChange={handleChange}
+            min={formData.startTime || today}
+            required
+          />
+        )}
         
         <Input
           label="Travelers"

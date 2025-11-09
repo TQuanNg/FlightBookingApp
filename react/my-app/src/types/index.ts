@@ -119,6 +119,12 @@ export interface AdminUserDTO {
   createdAt: string;
 }
 
+export interface AdminStatsDTO {
+  totalUsers: number;
+  totalBookings: number;
+  totalFlights: number;
+}
+
 // Cart Types
 export interface CartItem {
   id: number;
@@ -205,7 +211,7 @@ export interface FlightSearchParams {
   departureCity: string;
   arrivalCity: string;
   startTime: string;
-  endTime: string;
+  endTime?: string; // Optional - backend will use startTime + 7 days if not provided
   numTravelers: number;
   tripType?: TripType | string;
 }

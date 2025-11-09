@@ -2,6 +2,7 @@ package com.example.flightapi.service;
 
 import com.example.flightapi.model.DTO.AdminBookingDTO;
 import com.example.flightapi.model.DTO.AdminUserDTO;
+import com.example.flightapi.model.DTO.AdminStatsDTO;
 import com.example.flightapi.model.Entity.Booking;
 import com.example.flightapi.model.Entity.BookingStatus;
 import com.example.flightapi.model.Entity.Flight;
@@ -10,7 +11,6 @@ import com.example.flightapi.model.Entity.UserRole;
 import com.example.flightapi.repository.BookingRepository;
 import com.example.flightapi.repository.FlightRepository;
 import com.example.flightapi.repository.UserRepository;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -180,10 +180,36 @@ public class AdminService {
         return this.flightRepository.findById(flightId);
     }
 
+    public AdminStatsDTO getStats() {
+        long totalUsers = this.userRepository.count();
+        long totalBookings = this.bookingRepository.count();
+        long totalFlights = this.flightRepository.count();
+        return new AdminStatsDTO(totalUsers, totalBookings, totalFlights);
+    }
+
     private AdminBookingDTO convertToAdminBookingDTO(Booking booking) {
         User user = booking.getUser();
         Flight outbound = booking.getOutboundFlight();
         Flight returnFlight = booking.getReturnFlight();
-        return new AdminBookingDTO(booking.getBookingId(), user.getUserId(), user.getUsername(), user.getEmail(), outbound.getFlightId(), outbound.getFlightNumber(), outbound.getDepartureCity(), outbound.getArrivalCity(), outbound.getDepartureTime().toString(), outbound.getArrivalTime().toString(), returnFlight != null ? returnFlight.getFlightId() : null, returnFlight != null ? returnFlight.getFlightNumber() : null, returnFlight != null ? returnFlight.getDepartureTime().toString() : null, returnFlight != null ? returnFlight.getArrivalTime().toString() : null, booking.getNumberOfTravelers(), booking.getTotalPrice(), booking.getBookingDate().toString(), booking.getStatus(), booking.getIsRoundTrip(), booking.getBoardingGroup());
+        return new AdminBookingDTO(booking.getBookingId(),
+                user.getUserId(),
+                user.getUsername(),
+                user.getEmail(),
+                outbound.getFlightId(),
+                outbound.getFlightNumber(),
+                outbound.getDepartureCity(),
+                outbound.getArrivalCity(),
+                outbound.getDepartureTime().toString(),
+                outbound.getArrivalTime().toString(),
+                returnFlight != null ? returnFlight.getFlightId() : null,
+                returnFlight != null ? returnFlight.getFlightNumber() : null,
+                returnFlight != null ? returnFlight.getDepartureTime().toString() : null,
+                returnFlight != null ? returnFlight.getArrivalTime().toString() : null,
+                booking.getNumberOfTravelers(),
+                booking.getTotalPrice(),
+                booking.getBookingDate().toString(),
+                booking.getStatus(),
+                booking.getIsRoundTrip(),
+                booking.getBoardingGroup());
     }
 }

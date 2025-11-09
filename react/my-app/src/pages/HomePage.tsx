@@ -48,6 +48,12 @@ const HomePage: React.FC = () => {
     }
   };
 
+  const handleBackToOutbound = () => {
+    setSelectingReturn(false);
+    setSelected(null);
+    setSelectedReturnFlight(null);
+  };
+
   const handleAddToCart = async () => {
     console.log('HomePage: handleAddToCart called');
     console.log('HomePage: isAuthenticated:', isAuthenticated);
@@ -116,27 +122,51 @@ const HomePage: React.FC = () => {
 
       {!loading && outboundFlights.length > 0 && (
         <div>
-          {/* Outbound Flights Section */}
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-6 uppercase">
-              {selectingReturn ? 'Select Your Outbound Flight (Already Selected)' : 'Select Your Outbound Flight'} ({outboundFlights.length})
-            </h2>
-            <div className="space-y-4">
-              {outboundFlights.map(flight => (
-                <FlightCard
-                  key={flight.flightId || flight.id}
-                  flight={flight}
-                  onSelect={handleSelectFlight}
-                  buttonText={selectingReturn ? 'Selected ✓' : 'Select Flight'}
-                  disabled={selectingReturn || !!selectedFlight}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Return Flights Section (only for round trips) */}
-          {tripType === 'ROUND_TRIP' && returnFlights.length > 0 && selectedFlight && (
+          {/* Show either Outbound or Return flights, not both */}
+          {!selectingReturn ? (
+            // Outbound Flights Section
             <div>
+              <h2 className="text-3xl font-bold mb-6 uppercase">
+                Select Your Outbound Flight ({outboundFlights.length})
+              </h2>
+              <div className="space-y-4">
+                {outboundFlights.map(flight => (
+                  <FlightCard
+                    key={flight.flightId || flight.id}
+                    flight={flight}
+                    onSelect={handleSelectFlight}
+                    buttonText="Select Flight"
+                  />
+                ))}
+              </div>
+              
+              {/* Helper message for round trips */}
+              {tripType === 'ROUND_TRIP' && returnFlights.length > 0 && (
+                <div className="card-brutal p-6 mt-4 bg-blue-100">
+                  <p className="text-lg font-bold">💡 Select an outbound flight to continue to return flights</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Return Flights Section (replaces outbound display)
+            <div>
+              {/* Show selected outbound flight info */}
+              {selectedFlight && (
+                <div className="card-brutal p-6 mb-6 bg-green-100">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-xl font-bold mb-2">✓ Selected Outbound Flight</h3>
+                      <p className="text-lg font-bold">{selectedFlight.flightNumber}</p>
+                      <p>{selectedFlight.departureCity} → {selectedFlight.arrivalCity}</p>
+                      <p className="text-lg font-bold mt-1">${selectedFlight.price} per person</p>
+                    </div>
+                    <Button variant="secondary" onClick={handleBackToOutbound} className="text-sm">
+                      Change Flight
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
               <h2 className="text-3xl font-bold mb-6 uppercase">
                 Select Your Return Flight ({returnFlights.length})
               </h2>
@@ -150,13 +180,6 @@ const HomePage: React.FC = () => {
                   />
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Helper message for round trips */}
-          {tripType === 'ROUND_TRIP' && returnFlights.length > 0 && !selectingReturn && (
-            <div className="card-brutal p-6 mt-4 bg-blue-100">
-              <p className="text-lg font-bold">💡 Select an outbound flight first, then choose your return flight</p>
             </div>
           )}
         </div>

@@ -5,20 +5,23 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AutoGenerateTicket {
     private final Random random = new Random();
+    private final Set<String> generatedFlightNumbers = new HashSet<>();
 
     public List<Flight> generateFlights(String departureCity, String arrivalCity, int count) {
-        List<Flight> flights = new ArrayList();
+        List<Flight> flights = new ArrayList<>();
 
         for(int i = 0; i < count; ++i) {
             Flight flight = new Flight();
-            flight.setFlightNumber(this.generateFlightNumber());
+            flight.setFlightNumber(this.generateUniqueFlightNumber());
             flight.setDepartureCity(departureCity);
             flight.setArrivalCity(arrivalCity);
             LocalDateTime departureTime = this.generateRandomFutureTime();
@@ -38,7 +41,7 @@ public class AutoGenerateTicket {
 
         for(int i = 0; i < count; i++) {
             Flight flight = new Flight();
-            flight.setFlightNumber(this.generateFlightNumber());
+            flight.setFlightNumber(this.generateUniqueFlightNumber());
             flight.setDepartureCity(arrivalCity); // Swap cities for return
             flight.setArrivalCity(departureCity);
 
@@ -56,8 +59,21 @@ public class AutoGenerateTicket {
         return returnFlights;
     }
 
-    private String generateFlightNumber() {
-        return "FL" + (1000 + this.random.nextInt(9000));
+    private String generateUniqueFlightNumber() {
+        String flightNumber;
+        int attempts = 0;
+        do {
+            flightNumber = "FL" + (1000 + this.random.nextInt(9000)) + System.currentTimeMillis() % 1000;
+            attempts++;
+            if (attempts > 100) {
+                // Fallback to timestamp-based generation if too many collisions
+                flightNumber = "FL" + System.currentTimeMillis() + this.random.nextInt(100);
+                break;
+            }
+        } while (generatedFlightNumbers.contains(flightNumber));
+
+        generatedFlightNumbers.add(flightNumber);
+        return flightNumber;
     }
 
     private LocalDateTime generateRandomFutureTime() {

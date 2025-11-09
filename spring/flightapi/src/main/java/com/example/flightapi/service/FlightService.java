@@ -8,9 +8,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class FlightService {
+    private static final Logger logger = LoggerFactory.getLogger(FlightService.class);
+
     @Autowired
     private FlightRepository flightRepository;
     @Autowired
@@ -25,6 +30,7 @@ public class FlightService {
         // Search for outbound flights
         List<Flight> outboundFlights = this.flightRepository.findByUserInput(departureCity, arrivalCity, startTime, endTime, numTravelers);
         if (outboundFlights.isEmpty()) {
+            logger.info("No existing flights found, generating new flights for route: {} to {}", departureCity, arrivalCity);
             outboundFlights = this.creatingRandomFlights(departureCity, arrivalCity, 5);
         }
 
@@ -40,6 +46,7 @@ public class FlightService {
                 LocalDateTime earliestReturnTime = outboundFlights.isEmpty() ?
                     startTime :
                     outboundFlights.get(0).getArrivalTime();
+                logger.info("Generating return flights for route: {} to {}", arrivalCity, departureCity);
                 returnFlights = this.creatingRandomReturnFlights(arrivalCity, departureCity, 5, earliestReturnTime);
             }
             response.setReturnFlights(returnFlights);
@@ -50,21 +57,29 @@ public class FlightService {
         return response;
     }
 
-    // Legacy method for backward compatibility - defaults to ONE_WAY
-    public List<Flight> searchFlights(String departureCity, String arrivalCity, LocalDateTime startTime, LocalDateTime endTime, Integer numTravelers) {
-        FlightSearchResponseDTO response = searchFlights(departureCity, arrivalCity, startTime, endTime, numTravelers, "ONE_WAY");
-        return response.getOutboundFlights();
+    @Transactional
+    protected List<Flight> creatingRandomFlights(String departureCity, String arrivalCity, int numberOfFlight) {
+        try {
+            List<Flight> generatedFlights = this.autoGenerateTicket.generateFlights(departureCity, arrivalCity, numberOfFlight);
+            List<Flight> savedFlights = this.flightRepository.saveAll(generatedFlights);
+            logger.info("Successfully generated and saved {} flights for route: {} to {}", savedFlights.size(), departureCity, arrivalCity);
+            return savedFlights;
+        } catch (Exception e) {
+            logger.error("Error generating flights for route: {} to {}. Error: {}", departureCity, arrivalCity, e.getMessage());
+            throw new RuntimeException("Failed to generate flights: " + e.getMessage(), e);
+        }
     }
 
-    private List<Flight> creatingRandomFlights(String departureCity, String arrivalCity, int numberOfFlight) {
-        List<Flight> generatedFlights = this.autoGenerateTicket.generateFlights(departureCity, arrivalCity, numberOfFlight);
-        this.flightRepository.saveAll(generatedFlights);
-        return generatedFlights;
-    }
-
-    private List<Flight> creatingRandomReturnFlights(String departureCity, String arrivalCity, int numberOfFlight, LocalDateTime earliestReturnTime) {
-        List<Flight> generatedFlights = this.autoGenerateTicket.generateReturnFlights(departureCity, arrivalCity, numberOfFlight, earliestReturnTime);
-        this.flightRepository.saveAll(generatedFlights);
-        return generatedFlights;
+    @Transactional
+    protected List<Flight> creatingRandomReturnFlights(String departureCity, String arrivalCity, int numberOfFlight, LocalDateTime earliestReturnTime) {
+        try {
+            List<Flight> generatedFlights = this.autoGenerateTicket.generateReturnFlights(departureCity, arrivalCity, numberOfFlight, earliestReturnTime);
+            List<Flight> savedFlights = this.flightRepository.saveAll(generatedFlights);
+            logger.info("Successfully generated and saved {} return flights for route: {} to {}", savedFlights.size(), departureCity, arrivalCity);
+            return savedFlights;
+        } catch (Exception e) {
+            logger.error("Error generating return flights for route: {} to {}. Error: {}", departureCity, arrivalCity, e.getMessage());
+            throw new RuntimeException("Failed to generate return flights: " + e.getMessage(), e);
+        }
     }
 }

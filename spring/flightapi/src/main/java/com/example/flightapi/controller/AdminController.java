@@ -2,6 +2,7 @@ package com.example.flightapi.controller;
 
 import com.example.flightapi.model.DTO.AdminBookingDTO;
 import com.example.flightapi.model.DTO.AdminUserDTO;
+import com.example.flightapi.model.DTO.AdminStatsDTO;
 import com.example.flightapi.model.Entity.Booking;
 import com.example.flightapi.model.Entity.BookingStatus;
 import com.example.flightapi.model.Entity.Flight;
@@ -46,6 +47,17 @@ public class AdminController {
             return !JwtUtil.isAdminOrStaff(extractedToken) ? ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied. Admin or Staff role required.") : null;
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid token");
+        }
+    }
+
+    @GetMapping({"/stats"})
+    public ResponseEntity<?> getStats(@RequestHeader("Authorization") String token) {
+        ResponseEntity<?> authCheck = this.checkAdminOrStaffAuth(token);
+        if (authCheck != null) {
+            return authCheck;
+        } else {
+            AdminStatsDTO stats = this.adminService.getStats();
+            return ResponseEntity.ok(stats);
         }
     }
 

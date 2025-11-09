@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { adminService } from '../../services/adminService';
 import { Card, Button, Loading, Alert, Input, Select, Modal } from '../../components/ui';
 import { Flight, FlightStatus } from '../../types';
 import { format } from 'date-fns';
-import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 const AdminFlightsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +58,16 @@ const AdminFlightsPage: React.FC = () => {
         !formData.departureTime || !formData.arrivalTime || !formData.availableSeats || !formData.price) {
       alert('Please fill in all required fields');
       return;
+    }
+
+    // Validate arrival time is after departure time
+    if (formData.departureTime && formData.arrivalTime) {
+      const departure = new Date(formData.departureTime);
+      const arrival = new Date(formData.arrivalTime);
+      if (arrival <= departure) {
+        alert('Arrival time must be after departure time');
+        return;
+      }
     }
 
     try {
@@ -134,6 +146,17 @@ const AdminFlightsPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Button 
+          variant="secondary" 
+          onClick={() => navigate('/admin')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeftIcon className="w-5 h-5" />
+          Back to Dashboard
+        </Button>
+      </div>
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-5xl font-bold uppercase">Flight Management</h1>
@@ -187,7 +210,7 @@ const AdminFlightsPage: React.FC = () => {
                 <Button
                   variant="primary"
                   onClick={() => openEditModal(flight)}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2"
                 >
                   <PencilIcon className="w-5 h-5" />
                   Edit
@@ -195,7 +218,7 @@ const AdminFlightsPage: React.FC = () => {
                 <Button
                   variant="danger"
                   onClick={() => handleDelete(flight.flightId || flight.id!)}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2"
                 >
                   <TrashIcon className="w-5 h-5" />
                   Delete
@@ -255,6 +278,7 @@ const AdminFlightsPage: React.FC = () => {
               type="datetime-local"
               value={formData.arrivalTime ? format(new Date(formData.arrivalTime), "yyyy-MM-dd'T'HH:mm") : ''}
               onChange={handleInputChange}
+              min={formData.departureTime ? format(new Date(formData.departureTime), "yyyy-MM-dd'T'HH:mm") : undefined}
               required
             />
           </div>

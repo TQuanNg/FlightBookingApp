@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { adminService } from '../../services/adminService';
 import { Card, Button, Loading, Alert, Select, Modal } from '../../components/ui';
 import { AdminUserDTO, UserRole } from '../../types';
 import { format } from 'date-fns';
-import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, PencilIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 const AdminUsersPage: React.FC = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<AdminUserDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,12 +76,23 @@ const AdminUsersPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Button 
+          variant="secondary" 
+          onClick={() => navigate('/admin')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeftIcon className="w-5 h-5" />
+          Back to Dashboard
+        </Button>
+      </div>
+
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-5xl font-bold uppercase">User Management</h1>
           <p className="text-xl mt-2">Total Users: {users.length}</p>
         </div>
-        <Button variant="primary" onClick={fetchUsers}>
+        <Button variant="secondary" onClick={fetchUsers}>
           Refresh
         </Button>
       </div>
@@ -113,7 +126,7 @@ const AdminUsersPage: React.FC = () => {
                 <Button
                   variant="primary"
                   onClick={() => openRoleModal(user)}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2"
                 >
                   <PencilIcon className="w-5 h-5" />
                   Edit Role
@@ -121,7 +134,7 @@ const AdminUsersPage: React.FC = () => {
                 <Button
                   variant="danger"
                   onClick={() => handleDeleteUser(user.userId, user.username)}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2"
                 >
                   <TrashIcon className="w-5 h-5" />
                   Delete

@@ -2,6 +2,7 @@ import apiClient from './apiClient';
 import { 
   AdminUserDTO, 
   AdminBookingDTO, 
+  AdminStatsDTO,
   Flight, 
   ApiResponse, 
   UserRole, 
@@ -9,6 +10,12 @@ import {
 } from '../types';
 
 export const adminService = {
+  // Stats
+  async getStats(): Promise<AdminStatsDTO> {
+    const response = await apiClient.get('/api/admin/stats');
+    return response.data;
+  },
+
   // User Management
   async getAllUsers(): Promise<AdminUserDTO[]> {
     const response = await apiClient.get('/api/admin/users');

@@ -25,9 +25,9 @@ CREATE TABLE IF NOT EXISTS Flights (
 -- Bookings table for handling both one-way and round-trip flights
 CREATE TABLE IF NOT EXISTS Bookings (
                                         booking_id SERIAL PRIMARY KEY,
-                                        user_id SERIAL NOT NULL,
-                                        outbound_flight_id SERIAL NOT NULL,
-                                        return_flight_id SERIAL,
+                                        user_id INT NOT NULL,
+                                        outbound_flight_id INT NOT NULL,
+                                        return_flight_id INT,
                                         number_of_travelers INT NOT NULL,
                                         total_price DECIMAL(10, 2) NOT NULL,
     booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -42,8 +42,8 @@ CREATE TABLE IF NOT EXISTS Bookings (
 -- Ticket table (kept for backward compatibility)
 CREATE TABLE IF NOT EXISTS Ticket (
                                       ticket_id SERIAL PRIMARY KEY,
-                                      user_id SERIAL NOT NULL,
-                                      flight_id SERIAL NOT NULL,
+                                      user_id INT NOT NULL,
+                                      flight_id INT NOT NULL,
                                       ticket_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                       number_of_travelers INT NOT NULL,
                                       boarding_group VARCHAR(3) NOT NULL,
@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS Ticket (
 -- Purchase History table
 CREATE TABLE IF NOT EXISTS PurchaseHistory (
                                                purchase_id SERIAL PRIMARY KEY,
-                                               user_id SERIAL NOT NULL,
-                                               ticket_id SERIAL NOT NULL,
+                                               user_id INT NOT NULL,
+                                               ticket_id INT NOT NULL,
                                                purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                                FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (ticket_id) REFERENCES Ticket(ticket_id) ON DELETE CASCADE
@@ -65,9 +65,9 @@ CREATE TABLE IF NOT EXISTS PurchaseHistory (
 -- Cart Items table with round-trip support
 CREATE TABLE IF NOT EXISTS cart_item (
                                          cart_item_id SERIAL PRIMARY KEY,
-                                         user_id SERIAL NOT NULL,
-                                         flight_id SERIAL NOT NULL,
-                                         return_flight_id SERIAL,
+                                         user_id INT NOT NULL,
+                                         flight_id INT NOT NULL,
+                                         return_flight_id INT,
                                          number_of_travelers INT NOT NULL,
                                          total_price DECIMAL(10, 2) NOT NULL,
     is_round_trip BOOLEAN NOT NULL DEFAULT FALSE,

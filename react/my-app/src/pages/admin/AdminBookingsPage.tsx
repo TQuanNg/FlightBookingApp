@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { adminService } from '../../services/adminService';
 import { Card, Button, Loading, Alert, Select, Modal } from '../../components/ui';
 import { AdminBookingDTO, BookingStatus } from '../../types';
 import { format } from 'date-fns';
-import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, PencilIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 const AdminBookingsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<AdminBookingDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -135,12 +137,23 @@ const AdminBookingsPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Button 
+          variant="secondary" 
+          onClick={() => navigate('/admin')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeftIcon className="w-5 h-5" />
+          Back to Dashboard
+        </Button>
+      </div>
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-5xl font-bold uppercase">Booking Management</h1>
           <p className="text-xl mt-2">Total Bookings: {bookings.length}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
           <Select
             label=""
             value={filterStatus}
@@ -153,7 +166,7 @@ const AdminBookingsPage: React.FC = () => {
               { value: BookingStatus.CANCELLED, label: 'Cancelled' }
             ]}
           />
-          <Button variant="primary" onClick={fetchBookings}>
+          <Button variant="secondary" onClick={fetchBookings} className="whitespace-nowrap">
             Refresh
           </Button>
         </div>
@@ -213,6 +226,7 @@ const AdminBookingsPage: React.FC = () => {
                   <Button
                     variant="secondary"
                     onClick={() => handleCancelBooking(booking.bookingId)}
+                    className="justify-center"
                   >
                     Cancel
                   </Button>
@@ -220,7 +234,7 @@ const AdminBookingsPage: React.FC = () => {
                 <Button
                   variant="danger"
                   onClick={() => handleDeleteBooking(booking.bookingId)}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2"
                 >
                   <TrashIcon className="w-5 h-5" />
                   Delete
